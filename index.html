@@ -1,142 +1,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Study Planner</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-        h1 { text-align: center; margin-bottom: 20px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Study Planner Pro</title>
 
-        form {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: 0 auto 30px auto;
-        }
+<style>
 
-        form label {
-            display: block;
-            margin-top: 10px;
-            font-weight: bold;
-        }
+/* ================= GLOBAL ================= */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to right, #eef2f7, #f8fbff);
+    padding: 20px;
+    margin: 0;
+}
 
-        form input, form select, form button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
+h1 {
+    text-align: center;
+    margin-bottom: 5px;
+    font-size: 32px;
+}
 
-        form button {
-            background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-        }
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
 
-        #subjectsContainer {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-        }
+/* ================= Dashboard ================= */
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 1000px;
+    margin: 20px auto;
+}
 
-        .subject-card {
-            background: #fff;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            width: 250px;
-            position: relative;
-        }
+.stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    transition: transform 0.2s;
+}
 
-        .priority {
-            padding: 3px 8px;
-            border-radius: 5px;
-            color: white;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }
+.stat-card:hover {
+    transform: translateY(-4px);
+}
 
-        .priority.high { background-color: #e74c3c; }
-        .priority.medium { background-color: #f39c12; }
-        .priority.low { background-color: #3498db; }
+.stat-card h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #777;
+    font-weight: 500;
+}
 
-        .progress-bar {
-            background: #eee;
-            border-radius: 5px;
-            overflow: hidden;
-            height: 10px;
-            margin-top: 10px;
-        }
+.stat-card p {
+    font-size: 26px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: #222;
+}
 
-        .progress {
-            background: #4CAF50;
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s;
-        }
+/* ================= Form ================= */
+form {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    max-width: 700px;
+    margin: 40px auto;
+}
 
-        .subject-card button {
-            background-color: #3498db;
-            margin-top: 10px;
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+form h2 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 20px;
+}
 
+form label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+}
 
+form input, form select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
 
+form input:focus, form select:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
 
+form button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(45deg, #4CAF50, #45a049);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
 
+form button:hover {
+    opacity: 0.9;
+}
 
+/* ================= Sections ================= */
+.section-title {
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 20px;
+    font-size: 22px;
+}
 
+.subjects-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
 
-    </style>
+/* ================= Subject Card ================= */
+.subject-card {
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    width: 260px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    transition: transform 0.2s;
+}
+
+.subject-card:hover {
+    transform: translateY(-5px);
+}
+
+.subject-card h4 {
+    margin: 0;
+}
+
+.priority {
+    padding: 4px 8px;
+    border-radius: 5px;
+    color: white;
+    font-size: 0.75em;
+    margin-left: 8px;
+}
+
+.priority.high { background-color: #e74c3c; }
+.priority.medium { background-color: #f39c12; }
+.priority.low { background-color: #3498db; }
+
+/* ================= Progress ================= */
+.progress-bar {
+    background: #eee;
+    border-radius: 5px;
+    overflow: hidden;
+    height: 8px;
+    margin-top: 10px;
+}
+
+.progress {
+    background: #4CAF50;
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* ================= Buttons ================= */
+.card-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.complete-btn {
+    flex: 1;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.delete-btn {
+    flex: 1;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.completed-label {
+    color: #27ae60;
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+}
+
+.empty-message {
+    text-align: center;
+    color: #888;
+    margin-top: 20px;
+}
+
+</style>
 </head>
+
 <body>
 
-    <h1>Smart Study Planner</h1>
+<h1>Smart Study Planner Pro</h1>
+<p class="subtitle">Mini SaaS Style Productivity Dashboard</p>
 
-    <form id="subjectForm">
-        <label for="subjectName">Enter Subject Name</label>
-        <input type="text" id="subjectName" placeholder="e.g. Mathematics" required>
+<!-- ================= Dashboard ================= -->
+<div class="dashboard">
+    <div class="stat-card">
+        <h3>Total Subjects</h3>
+        <p id="totalSubjects">0</p>
+    </div>
+    <div class="stat-card">
+        <h3>Active Plans</h3>
+        <p id="activePlans">0</p>
+    </div>
+    <div class="stat-card">
+        <h3>Chapters Remaining</h3>
+        <p id="chaptersRemaining">0</p>
+    </div>
+    <div class="stat-card">
+        <h3>Completion Rate</h3>
+        <p id="completionRate">0%</p>
+    </div>
+</div>
 
-        <label for="totalChapters">Enter Total Chapters</label>
-        <input type="number" id="totalChapters" placeholder="e.g. 12" required>
+<!-- ================= Form ================= -->
+<form id="subjectForm">
+    <h2>Add New Subject</h2>
 
-        <label for="priority">Select Priority</label>
-        <select id="priority" required>
-            <option value="High">High Priority</option>
-            <option value="Medium">Medium Priority</option>
-            <option value="Low">Low Priority</option>
-        </select>
+    <label>Subject Name</label>
+    <input type="text" id="subjectName" required>
 
-        <label for="startDate">Start Day of Preparing</label>
-        <input type="date" id="startDate" required>
+    <label>Total Chapters</label>
+    <input type="number" id="totalChapters" required>
 
-        <label for="endDate">End Day of Preparation</label>
-        <input type="date" id="endDate" required>
+    <label>Priority</label>
+    <select id="priority" required>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+    </select>
 
-        <button type="submit">Add Subject</button>
-    </form>
+    <label>Start Date</label>
+    <input type="date" id="startDate" required>
 
-    <div id="subjectsContainer"></div>
+    <label>End Date</label>
+    <input type="date" id="endDate" required>
 
-    <!-- Link to JS -->
-    <script src="./script.js"></script>
+    <button type="submit">Add Subject</button>
+</form>
+
+<!-- ================= Active ================= -->
+<h2 class="section-title">Active Subjects</h2>
+<div id="activeContainer" class="subjects-section"></div>
+
+<!-- ================= Completed ================= -->
+<h2 class="section-title">Completed Subjects</h2>
+<div id="completedContainer" class="subjects-section"></div>
+
+<script src="./script.js"></script>
+
 </body>
 </html>
