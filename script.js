@@ -1,9 +1,8 @@
 // ==================== Smart Study Planner JS ====================
 
-// ------------------ Auto-clear old data ------------------
-// Remove old subjects if they do not have startDate (from older version)
+// Clear old subjects without start/end dates
 let oldSubjects = JSON.parse(localStorage.getItem('subjects')) || [];
-oldSubjects = oldSubjects.filter(sub => sub.startDate); // keep only new subjects with startDate
+oldSubjects = oldSubjects.filter(sub => sub.startDate && sub.endDate);
 localStorage.setItem('subjects', JSON.stringify(oldSubjects));
 
 // References
@@ -15,7 +14,7 @@ const startDateInput = document.getElementById('startDate');
 const endDateInput = document.getElementById('endDate');
 const subjectsContainer = document.getElementById('subjectsContainer');
 
-// Load subjects from localStorage
+// Load subjects
 let subjects = JSON.parse(localStorage.getItem('subjects')) || [];
 renderSubjects();
 
@@ -23,8 +22,20 @@ renderSubjects();
 subjectForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
+    // Validate dates
+    if (!startDateInput.value || !endDateInput.value) {
+        alert("Please enter both start and end dates!");
+        return;
+    }
+    const start = new Date(startDateInput.value);
+    const end = new Date(endDateInput.value);
+    if (start > end) {
+        alert("Start date cannot be after end date!");
+        return;
+    }
+
     const subject = {
-        name: subjectNameInput.value,
+        name: subjectNameInput.value.trim(),
         chapters: parseInt(totalChaptersInput.value),
         priority: prioritySelect.value,
         completed: 0,
@@ -42,13 +53,12 @@ subjectForm.addEventListener('submit', (e) => {
     endDateInput.value = '';
 });
 
-// Calculate total days for a subject
+// Calculate total days
 function getTotalDays(start, end) {
     const startDate = new Date(start);
     const endDate = new Date(end);
     const diffTime = endDate - startDate;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 0 ? diffDays : 1;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 }
 
 // Priority weights
@@ -57,7 +67,6 @@ const priorityWeights = { High: 3, Medium: 2, Low: 1 };
 // Render subjects
 function renderSubjects() {
     subjectsContainer.innerHTML = '';
-
     let totalWeight = subjects.reduce((acc, sub) => acc + priorityWeights[sub.priority], 0);
 
     subjects.forEach((sub, index) => {
@@ -71,7 +80,7 @@ function renderSubjects() {
             <p>Total Chapters: ${sub.chapters}</p>
             <p>Chapters/day: ${chaptersPerDay}</p>
             <p>Completed: ${sub.completed}/${sub.chapters}</p>
-            <p>Study Period: ${sub.startDate} ➔ ${sub.endDate}</p>
+            <p>Study Period: ${formatDate(sub.startDate)} ➔ ${formatDate(sub.endDate)}</p>
             <button onclick="markCompleted(${index})">Mark 1 Chapter Done ✅</button>
             <div class="progress-bar">
                 <div class="progress" style="width: ${(sub.completed / sub.chapters) * 100}%"></div>
@@ -89,8 +98,14 @@ function markCompleted(index) {
     }
 }
 
-// Save to localStorage and render
+// Save and render
 function saveAndRender() {
     localStorage.setItem('subjects', JSON.stringify(subjects));
     renderSubjects();
+}
+
+// Format date nicely
+function formatDate(dateStr) {
+    const options = { day: '2-digit', month: 'short', year: 'numeric' };
+    return new Date(dateStr).toLocaleDateString(undefined, options);
 }
