@@ -20,3 +20,17 @@
     <script src="script.js"></script>
 </body>
 </html>
+<form id="subjectForm">
+    <input type="text" id="subjectName" placeholder="Subject Name" required>
+    <input type="number" id="totalChapters" placeholder="Total Chapters" required>
+    <select id="priority">
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+    </select>
+    <input type="date" id="startDate" required>
+    <input type="date" id="endDate" required>
+    <button type="submit">Add Subject</button>
+</form>
+
+<div id="subjectsContainer"></div>
