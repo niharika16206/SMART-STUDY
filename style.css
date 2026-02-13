@@ -30,27 +30,3 @@ button {
     margin-bottom: 5px;
     font-size: 14px;
 }
-.deadline {
-    font-weight: 600;
-    margin-bottom: 8px;
-}
-
-.overdue {
-    color: #ff1e1e;
-}
-
-.today {
-    color: #cc0000;
-}
-
-.warning {
-    color: #ff9800;
-}
-
-.normal {
-    color: #555;
-}
-
-.completed {
-    color: #2e7d32;
-}

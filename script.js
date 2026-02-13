@@ -71,36 +71,11 @@ function renderAll() {
     updateDashboard();
 }
 
-// ==================== Render Subjects (UPDATED) ====================
+// ==================== Render Subjects ====================
 function renderSubjects() {
 
     activeContainer.innerHTML = "";
     completedContainer.innerHTML = "";
-
-    const today = new Date();
-
-    // 🔥 SMART SORTING
-    subjects.sort((a, b) => {
-
-        const aEnd = new Date(a.endDate);
-        const bEnd = new Date(b.endDate);
-
-        const aRemaining = a.chapters - a.completed;
-        const bRemaining = b.chapters - b.completed;
-
-        // 1️⃣ Nearest deadline first
-        if (aEnd - bEnd !== 0) {
-            return aEnd - bEnd;
-        }
-
-        // 2️⃣ Higher priority first
-        if (priorityWeights[b.priority] !== priorityWeights[a.priority]) {
-            return priorityWeights[b.priority] - priorityWeights[a.priority];
-        }
-
-        // 3️⃣ More remaining chapters first
-        return bRemaining - aRemaining;
-    });
 
     const activeSubjects = subjects.filter(s => s.status === "active");
     const completedSubjects = subjects.filter(s => s.status === "completed");
@@ -116,33 +91,6 @@ function renderSubjects() {
     subjects.forEach(sub => {
 
         const progressPercent = (sub.completed / sub.chapters) * 100;
-        const endDate = new Date(sub.endDate);
-
-        const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-
-        let warningText = "";
-        let warningClass = "";
-
-        if (sub.status === "completed") {
-            warningText = "Completed ✅";
-            warningClass = "completed";
-        } 
-        else if (daysLeft < 0) {
-            warningText = "Overdue 🚨";
-            warningClass = "overdue";
-        } 
-        else if (daysLeft === 0) {
-            warningText = "Due Today 🔴";
-            warningClass = "today";
-        } 
-        else if (daysLeft <= 3) {
-            warningText = `${daysLeft} Days Left ⚠️`;
-            warningClass = "warning";
-        } 
-        else {
-            warningText = `${daysLeft} Days Left`;
-            warningClass = "normal";
-        }
 
         const card = document.createElement("div");
         card.className = "subject-card";
@@ -156,8 +104,6 @@ function renderSubjects() {
                 </span>
             </h4>
 
-            <p class="deadline ${warningClass}">${warningText}</p>
-
             <p><strong>Total:</strong> ${sub.chapters}</p>
             <p><strong>Completed:</strong> ${sub.completed}/${sub.chapters}</p>
             <p><strong>Period:</strong> ${formatDate(sub.startDate)} ➔ ${formatDate(sub.endDate)}</p>
@@ -166,11 +112,22 @@ function renderSubjects() {
                 <div class="progress" style="width: ${progressPercent}%"></div>
             </div>
 
-            <div class="card-buttons">
-                ${sub.status === "active" ? `<button class="complete-btn">+1 Chapter</button>` : ``}
-                <button class="delete-btn">Delete</button>
-                <button class="schedule-btn">View Schedule</button>
-            </div>
+            ${
+                sub.status === "active"
+                    ? `
+                    <div class="card-buttons">
+                        <button class="complete-btn">+1 Chapter</button>
+                        <button class="delete-btn">Delete</button>
+                        <button class="schedule-btn">View Schedule</button>
+                    </div>
+                    `
+                    : `
+                    <div class="card-buttons">
+                        <button class="delete-btn">Delete</button>
+                        <button class="schedule-btn">View Schedule</button>
+                    </div>
+                    `
+            }
 
             <div class="schedule-container" style="display:none;"></div>
         `;
@@ -183,4 +140,134 @@ function renderSubjects() {
     });
 }
 
-// ==================== Rest of your original JS stays SAME ====================
+// ==================== Global Click Listener ====================
+document.addEventListener("click", function (e) {
+
+    const card = e.target.closest(".subject-card");
+    if (!card) return;
+
+    const id = parseInt(card.dataset.id);
+    const subjectIndex = subjects.findIndex(s => s.id === id);
+    if (subjectIndex === -1) return;
+
+    const subject = subjects[subjectIndex];
+
+    // ===== Mark Chapter Done =====
+    if (e.target.classList.contains("complete-btn")) {
+
+        if (subject.completed < subject.chapters) {
+            subject.completed++;
+
+            if (subject.completed >= subject.chapters) {
+                subject.status = "completed";
+                subject.completedDate = new Date().toISOString();
+            }
+
+            saveAndRender();
+        }
+    }
+
+    // ===== Delete Subject =====
+    if (e.target.classList.contains("delete-btn")) {
+
+        const confirmDelete = confirm("Are you sure you want to delete this subject?");
+        if (!confirmDelete) return;
+
+        subjects.splice(subjectIndex, 1);
+        saveAndRender();
+    }
+
+    // ===== Toggle Schedule =====
+    if (e.target.classList.contains("schedule-btn")) {
+
+        const scheduleContainer = card.querySelector(".schedule-container");
+        const scheduleButton = e.target;
+
+        if (scheduleContainer.style.display === "block") {
+            scheduleContainer.style.display = "none";
+            scheduleButton.textContent = "View Schedule";
+            return;
+        }
+
+        const schedule = generateSchedule(subject);
+        scheduleContainer.innerHTML = schedule;
+        scheduleContainer.style.display = "block";
+        scheduleButton.textContent = "Hide Schedule";
+    }
+});
+
+// ==================== Schedule Generator ====================
+function generateSchedule(subject) {
+
+    const start = new Date(subject.startDate);
+    const end = new Date(subject.endDate);
+
+    const totalDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const chaptersPerDay = Math.ceil(subject.chapters / totalDays);
+
+    let currentChapter = 1;
+    let scheduleHTML = "<ul class='schedule-list'>";
+
+    for (let i = 0; i < totalDays; i++) {
+
+        if (currentChapter > subject.chapters) break;
+
+        const dayDate = new Date(start);
+        dayDate.setDate(start.getDate() + i);
+
+        const from = currentChapter;
+        const to = Math.min(currentChapter + chaptersPerDay - 1, subject.chapters);
+
+        scheduleHTML += `
+            <li>
+                <strong>${formatDate(dayDate)}</strong> :
+                Chapters ${from} - ${to}
+            </li>
+        `;
+
+        currentChapter = to + 1;
+    }
+
+    scheduleHTML += "</ul>";
+    return scheduleHTML;
+}
+
+// ==================== Dashboard Analytics ====================
+function updateDashboard() {
+
+    const totalSubjects = subjects.length;
+    const activePlans = subjects.filter(s => s.status === "active").length;
+
+    let totalChapters = 0;
+    let totalCompleted = 0;
+
+    subjects.forEach(s => {
+        totalChapters += s.chapters;
+        totalCompleted += s.completed;
+    });
+
+    const chaptersRemaining = totalChapters - totalCompleted;
+
+    const completionRate =
+        totalChapters === 0
+            ? 0
+            : Math.round((totalCompleted / totalChapters) * 100);
+
+    totalSubjectsEl.textContent = totalSubjects;
+    activePlansEl.textContent = activePlans;
+    chaptersRemainingEl.textContent = chaptersRemaining;
+    completionRateEl.textContent = completionRate + "%";
+}
+
+// ==================== Save & Re-render ====================
+function saveAndRender() {
+    localStorage.setItem("subjects", JSON.stringify(subjects));
+    renderAll();
+}
+
+// ==================== Format Date ====================
+function formatDate(dateStr) {
+    if (!dateStr) return "";
+    const options = { day: "2-digit", month: "short", year: "numeric" };
+    return new Date(dateStr).toLocaleDateString(undefined, options);
+}
