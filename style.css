@@ -21,3 +21,12 @@ button {
     padding: 8px 12px;
     cursor: pointer;
 }
+.schedule-list {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.schedule-list li {
+    margin-bottom: 5px;
+    font-size: 14px;
+}

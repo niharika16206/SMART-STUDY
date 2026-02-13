@@ -49,7 +49,7 @@ subjectForm.addEventListener("submit", function (e) {
     }
 
     const newSubject = {
-        id: Date.now(), // safer than index tracking
+        id: Date.now(),
         name: subjectNameInput.value.trim(),
         chapters: parseInt(totalChaptersInput.value),
         priority: prioritySelect.value,
@@ -113,25 +113,23 @@ function renderSubjects() {
             </div>
 
             ${
-                sub.status === "completed"
-                    ? `<span class="completed-label">
-                        Completed on ${formatDate(sub.completedDate)}
-                      </span>`
-                    : `
+                sub.status === "active"
+                    ? `
                     <div class="card-buttons">
                         <button class="complete-btn">+1 Chapter</button>
                         <button class="delete-btn">Delete</button>
+                        <button class="schedule-btn">View Schedule</button>
                     </div>
-                `
+                    `
+                    : `
+                    <div class="card-buttons">
+                        <button class="delete-btn">Delete</button>
+                        <button class="schedule-btn">View Schedule</button>
+                    </div>
+                    `
             }
 
-            ${
-                sub.status === "completed"
-                    ? `<div class="card-buttons">
-                        <button class="delete-btn">Delete</button>
-                      </div>`
-                    : ""
-            }
+            <div class="schedule-container" style="display:none;"></div>
         `;
 
         if (sub.status === "active") {
@@ -150,13 +148,12 @@ document.addEventListener("click", function (e) {
 
     const id = parseInt(card.dataset.id);
     const subjectIndex = subjects.findIndex(s => s.id === id);
-
     if (subjectIndex === -1) return;
+
+    const subject = subjects[subjectIndex];
 
     // ===== Mark Chapter Done =====
     if (e.target.classList.contains("complete-btn")) {
-
-        const subject = subjects[subjectIndex];
 
         if (subject.completed < subject.chapters) {
             subject.completed++;
@@ -179,7 +176,58 @@ document.addEventListener("click", function (e) {
         subjects.splice(subjectIndex, 1);
         saveAndRender();
     }
+
+    // ===== Toggle Schedule =====
+    if (e.target.classList.contains("schedule-btn")) {
+
+        const scheduleContainer = card.querySelector(".schedule-container");
+
+        if (scheduleContainer.style.display === "block") {
+            scheduleContainer.style.display = "none";
+            return;
+        }
+
+        const schedule = generateSchedule(subject);
+        scheduleContainer.innerHTML = schedule;
+        scheduleContainer.style.display = "block";
+    }
 });
+
+// ==================== Schedule Generator ====================
+function generateSchedule(subject) {
+
+    const start = new Date(subject.startDate);
+    const end = new Date(subject.endDate);
+
+    const totalDays = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    const chaptersPerDay = Math.ceil(subject.chapters / totalDays);
+
+    let currentChapter = 1;
+    let scheduleHTML = "<ul class='schedule-list'>";
+
+    for (let i = 0; i < totalDays; i++) {
+
+        if (currentChapter > subject.chapters) break;
+
+        const dayDate = new Date(start);
+        dayDate.setDate(start.getDate() + i);
+
+        const from = currentChapter;
+        const to = Math.min(currentChapter + chaptersPerDay - 1, subject.chapters);
+
+        scheduleHTML += `
+            <li>
+                <strong>${formatDate(dayDate)}</strong> :
+                Chapters ${from} - ${to}
+            </li>
+        `;
+
+        currentChapter = to + 1;
+    }
+
+    scheduleHTML += "</ul>";
+    return scheduleHTML;
+}
 
 // ==================== Dashboard Analytics ====================
 function updateDashboard() {
