@@ -1,8 +1,8 @@
 // ==================== Smart Study Planner JS ====================
 
-// Clear old subjects without start/end dates
+// Load subjects from localStorage
 let subjects = JSON.parse(localStorage.getItem('subjects')) || [];
-subjects = subjects.filter(sub => sub.startDate && sub.endDate);
+subjects = subjects.filter(sub => sub.startDate && sub.endDate); // remove old invalid entries
 localStorage.setItem('subjects', JSON.stringify(subjects));
 
 // References
@@ -18,14 +18,15 @@ const subjectsContainer = document.getElementById('subjectsContainer');
 renderSubjects();
 
 // Handle form submit
-subjectForm.addEventListener('submit', (e) => {
+subjectForm.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    // Validate dates
-    if (!startDateInput.value || !endDateInput.value) {
-        alert("Please enter both start and end dates!");
+    // Validation
+    if (!subjectNameInput.value.trim() || !totalChaptersInput.value || !startDateInput.value || !endDateInput.value) {
+        alert("Please fill all fields correctly!");
         return;
     }
+
     if (new Date(startDateInput.value) > new Date(endDateInput.value)) {
         alert("Start date cannot be after end date!");
         return;
@@ -59,7 +60,7 @@ function getTotalDays(start, end) {
 // Priority weights
 const priorityWeights = { High: 3, Medium: 2, Low: 1 };
 
-// Render subjects as cards
+// Render subjects
 function renderSubjects() {
     subjectsContainer.innerHTML = '';
     const totalWeight = subjects.reduce((acc, s) => acc + priorityWeights[s.priority], 0);
@@ -70,13 +71,14 @@ function renderSubjects() {
 
         const card = document.createElement('div');
         card.className = 'subject-card';
+        card.dataset.index = index;
         card.innerHTML = `
             <h3>${sub.name} <span class="priority ${sub.priority.toLowerCase()}">${sub.priority}</span></h3>
             <p>Total Chapters: ${sub.chapters}</p>
             <p>Chapters/day: ${chaptersPerDay}</p>
             <p>Completed: ${sub.completed}/${sub.chapters}</p>
             <p>Study Period: ${formatDate(sub.startDate)} ➔ ${formatDate(sub.endDate)}</p>
-            <button onclick="markCompleted(${index})">Mark 1 Chapter Done ✅</button>
+            <button class="mark-btn">Mark 1 Chapter Done ✅</button>
             <div class="progress-bar">
                 <div class="progress" style="width: ${(sub.completed / sub.chapters) * 100}%"></div>
             </div>
@@ -85,21 +87,25 @@ function renderSubjects() {
     });
 }
 
-// Mark chapter completed
-function markCompleted(index) {
-    if (subjects[index].completed < subjects[index].chapters) {
-        subjects[index].completed++;
-        saveAndRender();
+// Event delegation for mark button
+subjectsContainer.addEventListener('click', function(e) {
+    if (e.target.classList.contains('mark-btn')) {
+        const card = e.target.closest('.subject-card');
+        const index = parseInt(card.dataset.index);
+        if (subjects[index].completed < subjects[index].chapters) {
+            subjects[index].completed++;
+            saveAndRender();
+        }
     }
-}
+});
 
-// Save and render
+// Save subjects to localStorage and re-render
 function saveAndRender() {
     localStorage.setItem('subjects', JSON.stringify(subjects));
     renderSubjects();
 }
 
-// Format date
+// Format date nicely
 function formatDate(dateStr) {
     const options = { day: '2-digit', month: 'short', year: 'numeric' };
     return new Date(dateStr).toLocaleDateString(undefined, options);
