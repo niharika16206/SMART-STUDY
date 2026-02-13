@@ -1,9 +1,9 @@
 // ==================== Smart Study Planner JS ====================
 
 // Clear old subjects without start/end dates
-let oldSubjects = JSON.parse(localStorage.getItem('subjects')) || [];
-oldSubjects = oldSubjects.filter(sub => sub.startDate && sub.endDate);
-localStorage.setItem('subjects', JSON.stringify(oldSubjects));
+let subjects = JSON.parse(localStorage.getItem('subjects')) || [];
+subjects = subjects.filter(sub => sub.startDate && sub.endDate);
+localStorage.setItem('subjects', JSON.stringify(subjects));
 
 // References
 const subjectForm = document.getElementById('subjectForm');
@@ -14,8 +14,7 @@ const startDateInput = document.getElementById('startDate');
 const endDateInput = document.getElementById('endDate');
 const subjectsContainer = document.getElementById('subjectsContainer');
 
-// Load subjects
-let subjects = JSON.parse(localStorage.getItem('subjects')) || [];
+// Initial render
 renderSubjects();
 
 // Handle form submit
@@ -27,14 +26,12 @@ subjectForm.addEventListener('submit', (e) => {
         alert("Please enter both start and end dates!");
         return;
     }
-    const start = new Date(startDateInput.value);
-    const end = new Date(endDateInput.value);
-    if (start > end) {
+    if (new Date(startDateInput.value) > new Date(endDateInput.value)) {
         alert("Start date cannot be after end date!");
         return;
     }
 
-    const subject = {
+    const newSubject = {
         name: subjectNameInput.value.trim(),
         chapters: parseInt(totalChaptersInput.value),
         priority: prioritySelect.value,
@@ -43,7 +40,7 @@ subjectForm.addEventListener('submit', (e) => {
         endDate: endDateInput.value
     };
 
-    subjects.push(subject);
+    subjects.push(newSubject);
     saveAndRender();
 
     // Clear inputs
@@ -55,19 +52,17 @@ subjectForm.addEventListener('submit', (e) => {
 
 // Calculate total days
 function getTotalDays(start, end) {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diffTime = endDate - startDate;
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const diff = new Date(end) - new Date(start);
+    return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
 }
 
 // Priority weights
 const priorityWeights = { High: 3, Medium: 2, Low: 1 };
 
-// Render subjects
+// Render subjects as cards
 function renderSubjects() {
     subjectsContainer.innerHTML = '';
-    let totalWeight = subjects.reduce((acc, sub) => acc + priorityWeights[sub.priority], 0);
+    const totalWeight = subjects.reduce((acc, s) => acc + priorityWeights[s.priority], 0);
 
     subjects.forEach((sub, index) => {
         const totalDays = getTotalDays(sub.startDate, sub.endDate);
@@ -93,7 +88,7 @@ function renderSubjects() {
 // Mark chapter completed
 function markCompleted(index) {
     if (subjects[index].completed < subjects[index].chapters) {
-        subjects[index].completed += 1;
+        subjects[index].completed++;
         saveAndRender();
     }
 }
@@ -104,7 +99,7 @@ function saveAndRender() {
     renderSubjects();
 }
 
-// Format date nicely
+// Format date
 function formatDate(dateStr) {
     const options = { day: '2-digit', month: 'short', year: 'numeric' };
     return new Date(dateStr).toLocaleDateString(undefined, options);
